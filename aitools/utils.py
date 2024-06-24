@@ -64,25 +64,24 @@ class NewLogger:
                         # compression="zip"   # 文件压缩
                         )
                                
-    def replace_fastapi_log(self):
-        """
-        使用方案：
-        config = uvicorn.Config("app", host='0.0.0.0', port=9999)
-        server = uvicorn.Server(config)
-        # 将uvicorn输出的全部让loguru管理
-        Loggers.replace_fastapi_log()
-        server.run()
-        """
-        LOGGER_NAMES = ("uvicorn.asgi", "uvicorn.access", "uvicorn")
- 
-        # change handler for default uvicorn logger
-        # logging.getLogger().handlers = [InterceptHandler()]
-        for logger_name in LOGGER_NAMES:
-            logging_logger = logging.getLogger(logger_name)
-            logging_logger.handlers = [InterceptHandler()]
- 
-    def get_logger(self):
-        return self.logger
+def replace_fastapi_log():
+    """
+    使用方案：
+    config = uvicorn.Config(app, host='0.0.0.0', port=9999)
+    server = uvicorn.Server(config)
+    # 将uvicorn输出的全部让loguru管理
+    replace_fastapi_log()
+    server.run()
+    """
+    LOGGER_NAMES = ("uvicorn.asgi", "uvicorn.access", "uvicorn")
+    # change handler for default uvicorn logger
+    # logging.getLogger().handlers = [InterceptHandler()]
+    for logger_name in LOGGER_NAMES:
+        logging_logger = logging.getLogger(logger_name)
+        logging_logger.handlers = [InterceptHandler()]
+
+def get_logger(self):
+    return self.logger
   
 class InterceptHandler(logging.Handler):
     def emit(self, record: logging.LogRecord) -> None:  # pragma: no cover
