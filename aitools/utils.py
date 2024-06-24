@@ -25,25 +25,28 @@ warnings.filterwarnings('ignore')
 class Logger:
     """输出日志到文件和控制台"""
  
-    def __init__(self,logdir='log'):
+    def __init__(self,logdir=None):
         self.logger = logger
         # 清空所有设置
         self.logger.remove()
+        # 添加控制台输出的格式,sys.stdout为输出到屏幕;关于这些配置还需要自定义请移步官网查看相关参数说明
+        self.logger.add(sys.stdout,
+            format="<green>{time:YYYYMMDD HH:mm:ss}</green> | "  # 颜色>时间
+                    "{process.name} | "  # 进程名
+                    "{thread.name} | "  # 进程名
+                    "<cyan>{module}</cyan>.<cyan>{function}</cyan>"  # 模块名.方法名
+                    ":<cyan>{line}</cyan> | "  # 行号
+                    "<level>{level}</level>: "  # 等级
+                    "<level>{message}</level>",  # 日志内容
+        )
+        if logdir: self.add_logfile(logdir)
+            
+    def add_logfile(self, logdir):
         # 文件的命名
         log_path = os.path.join(logdir, "log_{time:YYYY-MM-DD}.log")
         # 判断日志文件夹是否存在，不存则创建
         if not os.path.exists(logdir):
             os.makedirs(logdir)
-        # 添加控制台输出的格式,sys.stdout为输出到屏幕;关于这些配置还需要自定义请移步官网查看相关参数说明
-        self.logger.add(sys.stdout,
-                        format="<green>{time:YYYYMMDD HH:mm:ss}</green> | "  # 颜色>时间
-                               "{process.name} | "  # 进程名
-                               "{thread.name} | "  # 进程名
-                               "<cyan>{module}</cyan>.<cyan>{function}</cyan>"  # 模块名.方法名
-                               ":<cyan>{line}</cyan> | "  # 行号
-                               "<level>{level}</level>: "  # 等级
-                               "<level>{message}</level>",  # 日志内容
-                        )
         # 日志写入文件
         self.logger.add(log_path,  # 写入目录指定文件
                         format='{time:YYYYMMDD HH:mm:ss} - '  # 时间
@@ -60,7 +63,7 @@ class Logger:
                         # filter="my_module"  # 过滤模块
                         # compression="zip"   # 文件压缩
                         )
-    
+                               
     def replace_fastapi_log(self):
         """
         使用方案：
@@ -97,7 +100,7 @@ class InterceptHandler(logging.Handler):
  
         logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
 
-logger = Logger()
+logger = Logger().get_logger()
 #################################### 时间计算器 ####################################
 # 时间计算器
 class Timer:
