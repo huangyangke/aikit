@@ -1,9 +1,6 @@
 *.txt
 *.log
-*.sw*
 *.bak
-*.log
-*.json
 
 *.png
 *.jpg
@@ -12,10 +9,6 @@
 
 .DS_Store
 .vscode
-
 *.pyc
-
 nohup.out
-
 build
-dist
