@@ -22,7 +22,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 #################################### 日志 ####################################
-class Logger:
+class NewLogger:
     """输出日志到文件和控制台"""
  
     def __init__(self,logdir=None):
@@ -70,7 +70,7 @@ class Logger:
         config = uvicorn.Config("app", host='0.0.0.0', port=9999)
         server = uvicorn.Server(config)
         # 将uvicorn输出的全部让loguru管理
-        Loggers.init_config()
+        Loggers.replace_fastapi_log()
         server.run()
         """
         LOGGER_NAMES = ("uvicorn.asgi", "uvicorn.access", "uvicorn")
@@ -100,7 +100,7 @@ class InterceptHandler(logging.Handler):
  
         logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
 
-logger = Logger().get_logger()
+logger = NewLogger().get_logger()
 #################################### 时间计算器 ####################################
 # 时间计算器
 class Timer:
