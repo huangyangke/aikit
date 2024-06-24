@@ -80,8 +80,7 @@ class Logger:
  
     def get_logger(self):
         return self.logger
- 
- 
+  
 class InterceptHandler(logging.Handler):
     def emit(self, record: logging.LogRecord) -> None:  # pragma: no cover
         # Get corresponding Loguru level if it exists
@@ -97,6 +96,8 @@ class InterceptHandler(logging.Handler):
             depth += 1
  
         logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
+
+logger = Logger()
 #################################### 时间计算器 ####################################
 # 时间计算器
 class Timer:
