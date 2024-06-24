@@ -63,7 +63,10 @@ class NewLogger:
                         # filter="my_module"  # 过滤模块
                         # compression="zip"   # 文件压缩
                         )
-                               
+    
+    def get_logger(self):
+        return self.logger     
+                              
 def replace_fastapi_log():
     """
     使用方案：
@@ -79,9 +82,6 @@ def replace_fastapi_log():
     for logger_name in LOGGER_NAMES:
         logging_logger = logging.getLogger(logger_name)
         logging_logger.handlers = [InterceptHandler()]
-
-def get_logger(self):
-    return self.logger
   
 class InterceptHandler(logging.Handler):
     def emit(self, record: logging.LogRecord) -> None:  # pragma: no cover
@@ -215,8 +215,9 @@ def get_current_memory_gb():
     return round(info.uss / 1024. / 1024. /1024., 2)
       
 if __name__ == '__main__':
-    timer.start('下载图片')
-    for i in range(1):
-        downloadfile(url='https://img1.baidu.com/it/u=1901146814,3537581211&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=734', 
-                    save_path='test.jpg')
-    timer.end('下载图片')
+    # timer.start('下载图片')
+    # for i in range(1):
+    #     downloadfile(url='https://img1.baidu.com/it/u=1901146814,3537581211&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=734', 
+    #                 save_path='test.jpg')
+    # timer.end('下载图片')
+    replace_fastapi_log()
