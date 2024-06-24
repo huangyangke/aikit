@@ -22,67 +22,43 @@ import warnings
 warnings.filterwarnings('ignore')
 
 #################################### 日志 ####################################
-class NewLogger:
-    """输出日志到文件和控制台"""
- 
-    def __init__(self,logdir=None):
-        self.logger = logger
-        # 清空所有设置
-        self.logger.remove()
-        # 添加控制台输出的格式,sys.stdout为输出到屏幕;关于这些配置还需要自定义请移步官网查看相关参数说明
-        self.logger.add(sys.stdout,
-            format="<green>{time:YYYYMMDD HH:mm:ss}</green> | "  # 颜色>时间
-                    "{process.name} | "  # 进程名
-                    "{thread.name} | "  # 进程名
-                    "<cyan>{module}</cyan>.<cyan>{function}</cyan>"  # 模块名.方法名
-                    ":<cyan>{line}</cyan> | "  # 行号
-                    "<level>{level}</level>: "  # 等级
-                    "<level>{message}</level>",  # 日志内容
-        )
-        if logdir: self.add_logfile(logdir)
-            
-    def add_logfile(self, logdir):
-        # 文件的命名
-        log_path = os.path.join(logdir, "log_{time:YYYY-MM-DD}.log")
-        # 判断日志文件夹是否存在，不存则创建
-        if not os.path.exists(logdir):
-            os.makedirs(logdir)
-        # 日志写入文件
-        self.logger.add(log_path,  # 写入目录指定文件
-                        format='{time:YYYYMMDD HH:mm:ss} - '  # 时间
-                               "{process.name} | "  # 进程名
-                               "{thread.name} | "  # 进程名
-                               '{module}.{function}:{line} - {level} -{message}',  # 模块名.方法名:行号
-                        encoding='utf-8',
-                        backtrace=True,  # 回溯
-                        diagnose=True,  # 诊断
-                        enqueue=True,  # 异步写入
-                        rotation="00:00",  # 每日更新时间
-                        # retention='7 days',  # 设置历史保留时长
-                        # rotation="5kb",  # 切割，设置文件大小，rotation="12:00"，rotation="1 week"
-                        # filter="my_module"  # 过滤模块
-                        # compression="zip"   # 文件压缩
-                        )
-    
-    def get_logger(self):
-        return self.logger     
-                              
-def replace_fastapi_log():
-    """
-    使用方案：
-    config = uvicorn.Config(app, host='0.0.0.0', port=9999)
-    server = uvicorn.Server(config)
-    # 将uvicorn输出的全部让loguru管理
-    replace_fastapi_log()
-    server.run()
-    """
-    LOGGER_NAMES = ("uvicorn.asgi", "uvicorn.access", "uvicorn")
-    # change handler for default uvicorn logger
-    # logging.getLogger().handlers = [InterceptHandler()]
-    for logger_name in LOGGER_NAMES:
-        logging_logger = logging.getLogger(logger_name)
-        logging_logger.handlers = [InterceptHandler()]
-  
+# 清空所有设置
+logger.remove()
+# 添加控制台输出的格式,sys.stdout为输出到屏幕;关于这些配置还需要自定义请移步官网查看相关参数说明
+logger.add(sys.stdout,
+    format="<green>{time:YYYYMMDD HH:mm:ss}</green> | "  # 颜色>时间
+            "{process.name} | "  # 进程名
+            "{thread.name} | "  # 进程名
+            "<cyan>{module}</cyan>.<cyan>{function}</cyan>"  # 模块名.方法名
+            ":<cyan>{line}</cyan> | "  # 行号
+            "<level>{level}</level>: "  # 等级
+            "<level>{message}</level>",  # 日志内容
+)
+
+def add_logfile(logdir):
+    # 文件的命名
+    log_path = os.path.join(logdir, "log_{time:YYYY-MM-DD}.log")
+    # 判断日志文件夹是否存在，不存则创建
+    if not os.path.exists(logdir):
+        os.makedirs(logdir)
+    # 日志写入文件
+    logger.add(log_path,  # 写入目录指定文件
+        format='{time:YYYYMMDD HH:mm:ss} - '  # 时间
+                "{process.name} | "  # 进程名
+                "{thread.name} | "  # 进程名
+                '{module}.{function}:{line} - {level} -{message}',  # 模块名.方法名:行号
+        encoding='utf-8',
+        backtrace=True,  # 回溯
+        diagnose=True,  # 诊断
+        enqueue=True,  # 异步写入
+        rotation="00:00",  # 每日更新时间
+        # retention='7 days',  # 设置历史保留时长
+        # rotation="5kb",  # 切割，设置文件大小，rotation="12:00"，rotation="1 week"
+        # filter="my_module"  # 过滤模块
+        # compression="zip"   # 文件压缩
+    )
+    return logger
+
 class InterceptHandler(logging.Handler):
     def emit(self, record: logging.LogRecord) -> None:  # pragma: no cover
         # Get corresponding Loguru level if it exists
@@ -98,8 +74,19 @@ class InterceptHandler(logging.Handler):
             depth += 1
  
         logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
-
-logger = NewLogger().get_logger()
+                                  
+def replace_fastapi_log():
+    """
+    使用方案：将uvicorn输出的全部让loguru管理
+    config = uvicorn.Config(app, host='0.0.0.0', port=port, workers=1)
+    replace_fastapi_log()
+    uvicorn.Server(config).run()
+    """
+    LOGGER_NAMES = ("uvicorn.asgi", "uvicorn.access", "uvicorn")
+    # change handler for default uvicorn logger
+    for logger_name in LOGGER_NAMES:
+        logging_logger = logging.getLogger(logger_name)
+        logging_logger.handlers = [InterceptHandler()]
 #################################### 时间计算器 ####################################
 # 时间计算器
 class Timer:
@@ -220,4 +207,6 @@ if __name__ == '__main__':
     #     downloadfile(url='https://img1.baidu.com/it/u=1901146814,3537581211&fm=253&fmt=auto&app=138&f=JPEG?w=500&h=734', 
     #                 save_path='test.jpg')
     # timer.end('下载图片')
-    replace_fastapi_log()
+    # replace_fastapi_log()
+    logger = add_logfile('log')
+    logger.info('你好')
